@@ -5,7 +5,8 @@ let height = canvas.clientHeight;
 let firstDist;
 let secondDist;
 let forceAtMiddle;
-let numberOfDots = 1000;
+let maxEffectedDistance;
+let numberOfDots = 10000;
 let dots = [];
 let tree;
 
@@ -54,7 +55,14 @@ class Dot {
 
 	show() {
 		stroke(...this.color);
-		strokeWeight(3);
+		strokeWeight(5);
+		noFill();
+		point(this.pos.x, this.pos.y);
+	}
+
+	showSelected() {
+		stroke(255);
+		strokeWeight(10);
 		noFill();
 		point(this.pos.x, this.pos.y);
 	}
@@ -73,10 +81,10 @@ function setup() {
 	forceAtMiddle.position(10, 70);
 
 	for (let i = 0; i < numberOfDots; i++) {
-		dots.push(Dot(random(0, width), random(0, height), Math.floor(random() * 4)));
+		dots.push(new Dot(random(0, width), random(0, height), Math.floor(random() * 4)));
 	}
 
-	tree = QuadTree(0, 0, width, height);
+	tree = new QuadTree(0, 0, width, height);
 }
 
 function draw() {
@@ -86,5 +94,19 @@ function draw() {
 
 	dots.forEach((dot) => {
 		tree.insert(dot);
+	});
+
+	maxEffectedDistance = firstDist.value() + secondDist.value();
+
+	// region test
+	let selected = tree.queryCircle(mouseX, mouseY, maxEffectedDistance);
+	// endregion
+
+	dots.forEach((dot) => {
+		dot.show();
+	});
+
+	selected.forEach((dot) => {
+		dot.showSelected();
 	});
 }
