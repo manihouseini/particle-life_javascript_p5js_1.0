@@ -5,6 +5,9 @@ let height = canvas.clientHeight;
 let firstDist;
 let secondDist;
 let forceAtMiddle;
+let numberOfDots = 1000;
+let dots = [];
+let tree;
 
 let colors = [
 	[255, 0, 80],
@@ -32,17 +35,21 @@ function getForceCoeficient(d) {
 class Dot {
 	constructor(x, y, colorIndex) {
 		this.pos = createVector(x, y);
+		this.x = x;
+		this.y = y;
 		this.vel = createVector(0, 0);
 		this.color = colors[colorIndex];
 	}
 
-	setVel(vel) {
+	addVel(vel) {
 		this.vel += vel;
 	}
 
 	update() {
 		this.pos += this.vel;
 		this.vel = createVector(0, 0);
+		this.x = this.pos.x;
+		this.y = this.pos.y;
 	}
 
 	show() {
@@ -64,8 +71,20 @@ function setup() {
 	forceAtMiddle = createSlider(-1, 1, 1);
 	forceAtMiddle.size(500);
 	forceAtMiddle.position(10, 70);
+
+	for (let i = 0; i < numberOfDots; i++) {
+		dots.push(Dot(random(0, width), random(0, height), Math.floor(random() * 4)));
+	}
+
+	tree = QuadTree(0, 0, width, height);
 }
 
 function draw() {
 	background(15, 15, 15);
+
+	tree.clear();
+
+	dots.forEach((dot) => {
+		tree.insert(dot);
+	});
 }
