@@ -98,15 +98,15 @@ function draw() {
 
 	maxEffectedDistance = firstDist.value() + secondDist.value();
 
-	// region test
-	let selected = tree.queryCircle(mouseX, mouseY, maxEffectedDistance);
-	// endregion
-
 	dots.forEach((dot) => {
 		dot.show();
 	});
 
-	selected.forEach((dot) => {
-		dot.showSelected();
-	});
+	// region test
+	// let selected = tree.queryCircle(mouseX, mouseY, maxEffectedDistance);
+	// tree.show();
+	// selected.forEach((dot) => {
+	// 	dot.showSelected();
+	// });
+	// endregion
 }

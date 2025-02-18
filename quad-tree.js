@@ -84,10 +84,10 @@ class QuadTree {
 			}
 		});
 		if (!this.isDevided) return ls;
-		let nw = this.nw.queryRectPrivate(rec);
-		let ne = this.ne.queryRectPrivate(rec);
-		let sw = this.sw.queryRectPrivate(rec);
-		let se = this.se.queryRectPrivate(rec);
+		let nw = this.nw.queryCirclePrivate(rec, x, y, r);
+		let ne = this.ne.queryCirclePrivate(rec, x, y, r);
+		let sw = this.sw.queryCirclePrivate(rec, x, y, r);
+		let se = this.se.queryCirclePrivate(rec, x, y, r);
 
 		return [...ls, ...nw, ...ne, ...sw, ...se];
 	}
