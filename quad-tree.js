@@ -78,7 +78,7 @@ class QuadTree {
 		if (!this.boundry.intesects(rec)) return ls;
 		this.points.forEach((point) => {
 			if (rec.contains(point)) {
-				if (dist(x, y, point.x, point.y) < r) {
+				if ((point.x - x) ** 2 + (point.y - y) ** 2 < r * r) {
 					ls.push(point);
 				}
 			}

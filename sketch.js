@@ -6,7 +6,9 @@ let firstDist;
 let secondDist;
 let forceAtMiddle;
 let maxEffectedDistance;
-let numberOfDots = 10000;
+let maxForce = 2;
+let numberOfDots = 1000;
+let dotTypes = 3;
 let dots = [];
 let tree;
 
@@ -18,9 +20,18 @@ let colors = [
 	[144, 0, 255],
 ];
 
+// red, green, blue, purple, yellow
+let mat = [
+	[1, 0.6, 0, 0, 0],
+	[-0.6, 1, 0.6, 0, 0],
+	[0, -0.6, 1, 0.6, 0],
+	[0, 0, -0.6, 1, 0.6],
+	[0, 0, 0, -0.6, 1],
+];
+
 function getForceCoeficient(d) {
 	let dist1 = firstDist.value();
-	let dist2 = firstDist.value();
+	let dist2 = secondDist.value();
 	let mid = dist1 + dist2 / 2;
 	let end = dist1 + dist2;
 
@@ -39,18 +50,33 @@ class Dot {
 		this.x = x;
 		this.y = y;
 		this.vel = createVector(0, 0);
+		this.colorIndex = colorIndex;
 		this.color = colors[colorIndex];
 	}
 
-	addVel(vel) {
-		this.vel += vel;
+	addVel(v) {
+		this.vel.add(v);
 	}
 
 	update() {
-		this.pos += this.vel;
+		this.vel.limit(maxForce * 10);
+		this.pos.add(this.vel);
 		this.vel = createVector(0, 0);
 		this.x = this.pos.x;
 		this.y = this.pos.y;
+	}
+
+	border() {
+		if (this.x > width) {
+			this.x = 0;
+		} else if (this.x < 0) {
+			this.x = width;
+		}
+		if (this.y > height) {
+			this.y = 0;
+		} else if (this.y < 0) {
+			this.y = height;
+		}
 	}
 
 	show() {
@@ -70,18 +96,18 @@ class Dot {
 
 function setup() {
 	createCanvas(width, height);
-	firstDist = createSlider(0, 100, 1);
+	firstDist = createSlider(0, 80, 20);
 	firstDist.size(500);
 	firstDist.position(10, 10);
-	secondDist = createSlider(10, 1000, 100);
+	secondDist = createSlider(10, 350, 100);
 	secondDist.size(500);
 	secondDist.position(10, 40);
-	forceAtMiddle = createSlider(-1, 1, 1);
+	forceAtMiddle = createSlider(-1, 1, 1, 0.01);
 	forceAtMiddle.size(500);
 	forceAtMiddle.position(10, 70);
 
 	for (let i = 0; i < numberOfDots; i++) {
-		dots.push(new Dot(random(0, width), random(0, height), Math.floor(random() * 4)));
+		dots.push(new Dot(random(0, width), random(0, height), Math.floor(random() * dotTypes)));
 	}
 
 	tree = new QuadTree(0, 0, width, height);
@@ -97,6 +123,42 @@ function draw() {
 	});
 
 	maxEffectedDistance = firstDist.value() + secondDist.value();
+
+	// region main
+	dots.forEach((dot) => {
+		let otherDots = tree.queryCircle(dot.x, dot.y, maxEffectedDistance);
+		otherDots.forEach((other) => {
+			if (dot != other) {
+				let d = dist(dot.x, dot.y, other.x, other.y);
+				if (d > firstDist.value()) {
+					let coeficient = getForceCoeficient(d);
+					let dir = createVector(other.x - dot.x, other.y - dot.y);
+					dir.normalize();
+					dir.mult(coeficient);
+					dir.mult(maxForce);
+
+					let colorCoeficient = mat[dot.colorIndex][other.colorIndex];
+					dir.mult(colorCoeficient);
+
+					dot.addVel(dir);
+				} else {
+					let coeficient = getForceCoeficient(d);
+					let dir = createVector(other.x - dot.x, other.y - dot.y);
+					dir.normalize();
+					dir.mult(coeficient);
+					dir.mult(maxForce);
+
+					dot.addVel(dir);
+				}
+			}
+		});
+	});
+
+	dots.forEach((dot) => {
+		dot.update();
+		dot.border();
+	});
+	// endregion
 
 	dots.forEach((dot) => {
 		dot.show();
