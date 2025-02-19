@@ -6,9 +6,9 @@ let firstDist;
 let secondDist;
 let forceAtMiddle;
 let maxEffectedDistance;
-let maxForce = 2;
+let maxForce = 1.5;
 let numberOfDots = 1000;
-let dotTypes = 3;
+let dotTypes = 5;
 let dots = [];
 let tree;
 
@@ -17,17 +17,19 @@ let colors = [
 	[0, 250, 154],
 	[0, 191, 255],
 	[255, 255, 51],
-	[144, 0, 255],
+	[255, 255, 255],
 ];
 
 // red, green, blue, purple, yellow
 let mat = [
-	[1, 0.6, 0, 0, 0],
-	[-0.6, 1, 0.6, 0, 0],
-	[0, -0.6, 1, 0.6, 0],
-	[0, 0, -0.6, 1, 0.6],
-	[0, 0, 0, -0.6, 1],
+	[1, 0.9, 0, 0, 0],
+	[-0.9, 1, 0.9, 0, 0],
+	[0, -0.9, 1, 0.9, 0],
+	[0, 0, -0.9, 1, 0.9],
+	[0, 0, 0, -0.9, 1],
 ];
+
+let matRandom = [];
 
 function getForceCoeficient(d) {
 	let dist1 = firstDist.value();
@@ -56,6 +58,10 @@ class Dot {
 
 	addVel(v) {
 		this.vel.add(v);
+	}
+
+	move(v) {
+		this.pos.add(v);
 	}
 
 	update() {
@@ -96,25 +102,47 @@ class Dot {
 
 function setup() {
 	createCanvas(width, height);
-	firstDist = createSlider(0, 80, 20);
+	firstDist = createSlider(0, 80, 30);
 	firstDist.size(500);
 	firstDist.position(10, 10);
-	secondDist = createSlider(10, 350, 100);
+	secondDist = createSlider(10, 350, 80);
 	secondDist.size(500);
 	secondDist.position(10, 40);
 	forceAtMiddle = createSlider(-1, 1, 1, 0.01);
 	forceAtMiddle.size(500);
 	forceAtMiddle.position(10, 70);
 
+	for (let i = 0; i < 5; i++) {
+		matRandom.push([
+			random() * 2 - 1,
+			random() * 2 - 1,
+			random() * 2 - 1,
+			random() * 2 - 1,
+			random() * 2 - 1,
+		]);
+	}
+
 	for (let i = 0; i < numberOfDots; i++) {
 		dots.push(new Dot(random(0, width), random(0, height), Math.floor(random() * dotTypes)));
 	}
 
-	tree = new QuadTree(0, 0, width, height);
+	tree = new QuadTree(-width * 3, -width * 3, width * 9, height * 9);
 }
 
 function draw() {
 	background(15, 15, 15);
+
+	// region camera
+	let dir = createVector(mouseX, mouseY);
+	dir.sub(createVector(width / 2, height / 2));
+	if (dir.mag() > 300 && mouseIsPressed) {
+		dir.normalize();
+		dir.mult(-10);
+		dots.forEach((dot) => {
+			dot.move(dir);
+		});
+	}
+	// endregion
 
 	tree.clear();
 
@@ -137,7 +165,7 @@ function draw() {
 					dir.mult(coeficient);
 					dir.mult(maxForce);
 
-					let colorCoeficient = mat[dot.colorIndex][other.colorIndex];
+					let colorCoeficient = matRandom[dot.colorIndex][other.colorIndex];
 					dir.mult(colorCoeficient);
 
 					dot.addVel(dir);
@@ -156,13 +184,13 @@ function draw() {
 
 	dots.forEach((dot) => {
 		dot.update();
-		dot.border();
+		// dot.border();
 	});
-	// endregion
 
 	dots.forEach((dot) => {
 		dot.show();
 	});
+	// endregion
 
 	// region test
 	// let selected = tree.queryCircle(mouseX, mouseY, maxEffectedDistance);
